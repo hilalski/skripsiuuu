@@ -1,0 +1,131 @@
+---
+title: "Olah PCA"
+author: "Yanuar Nurul Hilal"
+date: "2024-07-31"
+output: word_document
+---
+
+```{r}
+library(haven)
+library(readr) 
+library(dplyr) 
+library(GGally) 
+library(psych) 
+library(ggplot2) 
+library(GPArotation) 
+library(factoextra)
+library(gridExtra)
+library(tidyr)
+library(car)
+library(readr)
+library(dplyr)
+library(clValid)
+library(readxl)
+library(cluster)
+library(factoextra)
+library(fpc)
+library(clusterCrit)
+library(writexl)
+library(corrplot)
+library(REdaS)
+library(psych)
+library(kohonen)
+library(mclust)
+```
+
+## Korelasi
+
+```{r}
+datcor<-read_excel("corel.xlsx")
+head(datcor)
+```
+```{r}
+datcor <- as.data.frame(datcor)
+datcor$irb <- as.numeric(datcor$bnpb)
+num_cols <- datcor %>% select(where(is.numeric)) %>% select(-bnpb)
+
+compute_corr <- function(x, y) {
+  pearson <- cor.test(x, y, method = "pearson")
+  spearman <- cor.test(x, y, method = "spearman")
+  
+  data.frame(
+    Pearson_Corr = pearson$estimate,
+    Pearson_Pvalue = pearson$p.value,
+    Spearman_Corr = spearman$estimate,
+    Spearman_Pvalue = spearman$p.value
+  )
+}
+
+results <- lapply(num_cols, compute_corr, y = datcor$irb)
+final_results <- do.call(rbind, results)
+print(final_results)
+```
+
+## PCA
+
+```{r}
+dat<-read_excel("raws.xlsx")
+head(dat)
+```
+
+```{r}
+data_df = select(dat, -c(kabupaten, id_baru))
+```
+
+```{r}
+ggcorr(data_df, label = T, hjust = 1, layout.exp = 2, size = 3, label_size = 2, label_round = 2, low = "#d7fc5b", mid = "white", high = "#5d8064")
+```
+
+```{r}
+dat_cor <- cor(data_df)
+dat_KMO<-KMO(dat_cor)
+dat_KMO$MSA
+
+#0,65
+```
+
+```{r}
+KMO(data_df)
+
+#0,65
+```
+
+```{r}
+bart_spher(data_df)
+```
+```{r}
+# compute total variance
+variance = pca$sdev^2 / sum(pca$sdev^2)
+variance
+
+# Scree plot
+qplot(c(1:12), variance) + 
+  geom_line() + 
+  geom_point(size=4)+
+  xlab("Principal Component") + 
+  ylab("Variance Explained") +
+  ggtitle("Scree Plot") +
+  ylim(0, 1)
+```
+
+```{r}
+pcaplot<-princomp(data_df, cor = FALSE)
+pcaplot
+```
+```{r}
+pcaplot$loadings
+```
+
+
+```{r}
+pca = prcomp(data_df)
+summary(pca, loadings = TRUE)
+pca$rotation
+```
+
+```{r}
+pca_data <- as.data.frame(pca$rotation[, 1:6])
+pca_data
+```
+
+
